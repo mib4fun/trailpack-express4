@@ -69,6 +69,31 @@ module.exports = class FootprintController extends Controller {
 
   }
 
+  count(req, res) {
+    const FootprintService = this.app.services.FootprintService
+    const options = this.app.packs.express.getOptionsFromQuery(req.query)
+    const criteria = this.app.packs.express.getCriteriaFromQuery(req.query)
+    let response
+    response = FootprintService.count(req.params.model, criteria, options)
+
+    response.then(elements => {
+      res.status(elements ? 200 : 404).json(elements || {})
+    }).catch(error => {
+      if (error.code == 'E_VALIDATION') {
+        res.status(400).json(error)
+      }
+      else if (error.code == 'E_NOT_FOUND') {
+        res.status(404).json(error)
+      }
+      else {
+        res.status(500).send(res.boom.wrap(manageErrors(this.app, error), 500))
+      }
+    })
+
+  }
+
+
+
   update(req, res) {
     const FootprintService = this.app.services.FootprintService
     const options = this.app.packs.express.getOptionsFromQuery(req.query)
@@ -181,6 +206,34 @@ module.exports = class FootprintController extends Controller {
       }
     })
   }
+
+  countAssociation(req, res) {
+    const FootprintService = this.app.services.FootprintService
+    const options = this.app.packs.express.getOptionsFromQuery(req.query)
+    const criteria = this.app.packs.express.getCriteriaFromQuery(req.query)
+    const parentModel = req.params.parentModel
+    const parentId = req.params.parentId
+    const childAttribute = req.params.childAttribute
+    let response
+
+    response = FootprintService.findAssociation(parentModel,
+      parentId, childAttribute, criteria, options)
+
+    response.then(elements => {
+      res.status(elements ? 200 : 404).json(elements || {})
+    }).catch(error => {
+      if (error.code == 'E_VALIDATION') {
+        res.status(400).json(error)
+      }
+      else if (error.code == 'E_NOT_FOUND') {
+        res.status(404).json(error)
+      }
+      else {
+        res.status(500).send(res.boom.wrap(manageErrors(this.app, error), 500))
+      }
+    })
+  }
+
 
   updateAssociation(req, res) {
     const FootprintService = this.app.services.FootprintService
